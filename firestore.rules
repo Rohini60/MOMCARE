@@ -1,0 +1,134 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Safety Net (Default Deny)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Connection testing endpoint
+    match /test/connection {
+      allow read: if true;
+    }
+
+    // Common Hardened Security Primitives
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // 1. User Profiles Collection
+    function isValidUser(data) {
+      return data.keys().hasAll(['email', 'name', 'age', 'current_week', 'due_date'])
+        && data.email is string && data.email.size() <= 256
+        && data.name is string && data.name.size() > 0 && data.name.size() <= 120
+        && data.age is number && data.age >= 10 && data.age <= 100
+        && data.current_week is number && data.current_week >= 1 && data.current_week <= 45
+        && data.due_date is string && data.due_date.size() <= 20
+        && (!('contact' in data) || (data.contact is string && data.contact.size() <= 30))
+        && (!('address' in data) || (data.address is string && data.address.size() <= 250))
+        && (!('pregnancy_number' in data) || (data.pregnancy_number is number))
+        && (!('lmp_date' in data) || (data.lmp_date is string && data.lmp_date.size() <= 20))
+        && (!('baby_name' in data) || (data.baby_name is string && data.baby_name.size() <= 120))
+        && (!('baby_gender' in data) || (data.baby_gender is string && data.baby_gender.size() <= 30))
+        && (!('baby_notes' in data) || (data.baby_notes is string && data.baby_notes.size() <= 500));
+    }
+
+    match /users/{userId} {
+      allow get: if isOwner(userId) && isValidId(userId);
+      allow create: if isOwner(userId) && isValidId(userId) && isValidUser(incoming());
+      allow update: if isOwner(userId) && isValidId(userId) && isValidUser(incoming());
+      allow delete: if isOwner(userId) && isValidId(userId);
+    }
+
+    // 2. Daily Care Tasks Collection
+    function isValidCareTask(data) {
+      return data.keys().hasAll(['userId', 'task_name', 'task_date', 'completed', 'category'])
+        && data.userId == request.auth.uid
+        && data.task_name is string && data.task_name.size() > 0 && data.task_name.size() <= 200
+        && data.task_date is string && data.task_date.size() <= 20
+        && data.completed is bool
+        && data.category is string && data.category in ['morning', 'afternoon', 'evening', 'nutrition', 'medication', 'hydration', 'symptom', 'rest'];
+    }
+
+    match /care_tasks/{taskId} {
+      allow get: if isSignedIn() && isValidId(taskId) && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidId(taskId) && isValidCareTask(incoming());
+      allow update: if isSignedIn() && isValidId(taskId) && existing().userId == request.auth.uid && isValidCareTask(incoming());
+      allow delete: if isSignedIn() && isValidId(taskId) && existing().userId == request.auth.uid;
+    }
+
+    // 3. Prenatal Appointments Collection
+    function isValidAppointment(data) {
+      return data.keys().hasAll(['userId', 'doctor_name', 'appointment_date', 'purpose', 'status'])
+        && data.userId == request.auth.uid
+        && data.doctor_name is string && data.doctor_name.size() > 0 && data.doctor_name.size() <= 150
+        && data.appointment_date is string && data.appointment_date.size() <= 20
+        && data.purpose is string && data.purpose.size() <= 120
+        && data.status is string && data.status in ['scheduled', 'completed', 'cancelled']
+        && (!('notes' in data) || (data.notes is string && data.notes.size() <= 1000));
+    }
+
+    match /appointments/{appointmentId} {
+      allow get: if isSignedIn() && isValidId(appointmentId) && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidId(appointmentId) && isValidAppointment(incoming());
+      allow update: if isSignedIn() && isValidId(appointmentId) && existing().userId == request.auth.uid && isValidAppointment(incoming());
+      allow delete: if isSignedIn() && isValidId(appointmentId) && existing().userId == request.auth.uid;
+    }
+
+    // 4. Health Records & Symptoms Collection
+    function isValidHealthRecord(data) {
+      return data.keys().hasAll(['userId', 'record_date', 'record_type', 'details'])
+        && data.userId == request.auth.uid
+        && data.record_date is string && data.record_date.size() <= 20
+        && data.record_type is string && data.record_type in ['symptom', 'vitals', 'clinical_note']
+        && data.details is string && data.details.size() <= 4000
+        && (!('doctor_notes' in data) || (data.doctor_notes is string && data.doctor_notes.size() <= 1000));
+    }
+
+    match /health_records/{recordId} {
+      allow get: if isSignedIn() && isValidId(recordId) && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidId(recordId) && isValidHealthRecord(incoming());
+      allow update: if isSignedIn() && isValidId(recordId) && existing().userId == request.auth.uid && isValidHealthRecord(incoming());
+      allow delete: if isSignedIn() && isValidId(recordId) && existing().userId == request.auth.uid;
+    }
+
+    // 5. Medical Reports Collection
+    function isValidMedicalReport(data) {
+      return data.keys().hasAll(['userId', 'report_name', 'report_date', 'summary'])
+        && data.userId == request.auth.uid
+        && data.report_name is string && data.report_name.size() > 0 && data.report_name.size() <= 200
+        && data.report_date is string && data.report_date.size() <= 20
+        && data.summary is string && data.summary.size() <= 8000
+        && (!('file_name' in data) || (data.file_name is string && data.file_name.size() <= 255))
+        && (!('file_data' in data) || (data.file_data is string && data.file_data.size() <= 1000000));
+    }
+
+    match /medical_reports/{reportId} {
+      allow get: if isSignedIn() && isValidId(reportId) && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidId(reportId) && isValidMedicalReport(incoming());
+      allow update: if isSignedIn() && isValidId(reportId) && existing().userId == request.auth.uid && isValidMedicalReport(incoming());
+      allow delete: if isSignedIn() && isValidId(reportId) && existing().userId == request.auth.uid;
+    }
+  }
+}

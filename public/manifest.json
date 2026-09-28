@@ -1,0 +1,20 @@
+{
+  "id": "/",
+  "name": "MomCare AI — Maternal Health",
+  "short_name": "MomCare",
+  "description": "AI-powered maternal and baby health companion connected with PocketBase.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#FAF8F5",
+  "theme_color": "#FAF8F5",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

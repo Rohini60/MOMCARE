@@ -1,0 +1,295 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "User maternal profile record linked to their authenticated Firebase UID",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique user ID matching request.auth.uid",
+          "maxLength": 128
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "Google authenticated email address",
+          "maxLength": 256
+        },
+        "name": {
+          "type": "string",
+          "description": "Full name of the expectant mother",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "age": {
+          "type": "number",
+          "description": "Age in years"
+        },
+        "contact": {
+          "type": "string",
+          "description": "Contact phone number",
+          "maxLength": 30
+        },
+        "address": {
+          "type": "string",
+          "description": "Residential address or city",
+          "maxLength": 250
+        },
+        "pregnancy_number": {
+          "type": "number",
+          "description": "Gravida / pregnancy number"
+        },
+        "due_date": {
+          "type": "string",
+          "description": "Expected date of delivery (YYYY-MM-DD)",
+          "maxLength": 20
+        },
+        "current_week": {
+          "type": "number",
+          "description": "Current gestational age in completed weeks"
+        },
+        "lmp_date": {
+          "type": "string",
+          "description": "Last menstrual period date (YYYY-MM-DD)",
+          "maxLength": 20
+        },
+        "baby_name": {
+          "type": "string",
+          "description": "Baby expected name or affectionate nickname",
+          "maxLength": 120
+        },
+        "baby_gender": {
+          "type": "string",
+          "description": "Baby gender preference or surprise",
+          "maxLength": 30
+        },
+        "baby_notes": {
+          "type": "string",
+          "description": "Personal baby notes, nursery preparations, or nursery milestones",
+          "maxLength": 500
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Record creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Record update timestamp"
+        }
+      },
+      "required": ["email", "name", "age", "current_week", "due_date"]
+    },
+    "CareTask": {
+      "title": "Daily Care Task",
+      "description": "Daily maternal care and wellness item",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner user UID",
+          "maxLength": 128
+        },
+        "task_name": {
+          "type": "string",
+          "description": "Title of the wellness or clinical care task",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "task_date": {
+          "type": "string",
+          "description": "Scheduled date (YYYY-MM-DD)",
+          "maxLength": 20
+        },
+        "completed": {
+          "type": "boolean",
+          "description": "Whether task is completed"
+        },
+        "category": {
+          "type": "string",
+          "description": "Routine category time or topic",
+          "enum": ["morning", "afternoon", "evening", "nutrition", "medication", "hydration", "symptom", "rest"],
+          "maxLength": 30
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Update timestamp"
+        }
+      },
+      "required": ["userId", "task_name", "task_date", "completed", "category"]
+    },
+    "Appointment": {
+      "title": "Clinical Appointment",
+      "description": "Scheduled prenatal doctor visit or consultation",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner user UID",
+          "maxLength": 128
+        },
+        "doctor_name": {
+          "type": "string",
+          "description": "Name of the physician or midwife",
+          "minLength": 1,
+          "maxLength": 150
+        },
+        "appointment_date": {
+          "type": "string",
+          "description": "Date of appointment (YYYY-MM-DD)",
+          "maxLength": 20
+        },
+        "purpose": {
+          "type": "string",
+          "description": "Visit specialty or category",
+          "maxLength": 120
+        },
+        "status": {
+          "type": "string",
+          "description": "Status of appointment",
+          "enum": ["scheduled", "completed", "cancelled"],
+          "maxLength": 20
+        },
+        "notes": {
+          "type": "string",
+          "description": "Preparation notes or clinical summary",
+          "maxLength": 1000
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Update timestamp"
+        }
+      },
+      "required": ["userId", "doctor_name", "appointment_date", "purpose", "status"]
+    },
+    "HealthRecord": {
+      "title": "Health Record & Symptom Log",
+      "description": "Vitals, symptoms, and clinical logs logged by mother",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner user UID",
+          "maxLength": 128
+        },
+        "record_date": {
+          "type": "string",
+          "description": "Date of observation (YYYY-MM-DD)",
+          "maxLength": 20
+        },
+        "record_type": {
+          "type": "string",
+          "description": "Classification of entry",
+          "enum": ["symptom", "vitals", "clinical_note"],
+          "maxLength": 30
+        },
+        "details": {
+          "type": "string",
+          "description": "Observed symptom description or JSON payload",
+          "maxLength": 4000
+        },
+        "doctor_notes": {
+          "type": "string",
+          "description": "Optional notes or guidance",
+          "maxLength": 1000
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Update timestamp"
+        }
+      },
+      "required": ["userId", "record_date", "record_type", "details"]
+    },
+    "MedicalReport": {
+      "title": "Medical Report",
+      "description": "Uploaded maternal health diagnostic document with AI summary",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner user UID",
+          "maxLength": 128
+        },
+        "report_name": {
+          "type": "string",
+          "description": "Name of the medical report document",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "report_date": {
+          "type": "string",
+          "description": "Test date (YYYY-MM-DD)",
+          "maxLength": 20
+        },
+        "file_name": {
+          "type": "string",
+          "description": "Original file name",
+          "maxLength": 255
+        },
+        "file_data": {
+          "type": "string",
+          "description": "File data URL or storage representation",
+          "maxLength": 1000000
+        },
+        "summary": {
+          "type": "string",
+          "description": "Plain language medical explanation and biomarker analysis",
+          "maxLength": 8000
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Update timestamp"
+        }
+      },
+      "required": ["userId", "report_name", "report_date", "summary"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Stores user profile and maternal gestational progress"
+    },
+    "/care_tasks/{taskId}": {
+      "schema": "CareTask",
+      "description": "Stores daily nutrition, hydration, and prenatal care tasks"
+    },
+    "/appointments/{appointmentId}": {
+      "schema": "Appointment",
+      "description": "Stores clinical prenatal appointments and visit preparation"
+    },
+    "/health_records/{recordId}": {
+      "schema": "HealthRecord",
+      "description": "Stores logged symptoms and maternal vital checks"
+    },
+    "/medical_reports/{reportId}": {
+      "schema": "MedicalReport",
+      "description": "Stores uploaded ultrasound and blood test summaries"
+    }
+  }
+}
